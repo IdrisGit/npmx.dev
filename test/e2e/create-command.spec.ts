@@ -151,4 +151,56 @@ test.describe('Create Command', () => {
       await expect(copyButton).not.toContainText(/copied/i)
     })
   })
+
+  test.describe('Run Command Copy', () => {
+    test('copy button is always visible', async ({ page, goto }) => {
+      await goto('/package/vite', { waitUntil: 'hydration' })
+
+      await expect(page.locator('h1')).toContainText('vite', { timeout: 15000 })
+
+      await expect(page.locator('main header').locator('text=/v\\d+\\.\\d+/')).toBeVisible({
+        timeout: 15000,
+      })
+
+      // Find the run command container
+      const runCommandContainer = page.locator('.group\\/runcmd').first()
+      await expect(runCommandContainer).toBeVisible({ timeout: 20000 })
+
+      // Copy button should always be visible
+      const copyButton = runCommandContainer.locator('button')
+      await expect(copyButton).toHaveCSS('opacity', '1')
+    })
+
+    test('clicking copy button copies run command and shows confirmation', async ({
+      page,
+      goto,
+      context,
+    }) => {
+      // Grant clipboard permissions
+      await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+
+      await goto('/package/vite', { waitUntil: 'hydration' })
+      await expect(page.locator('h1')).toContainText('vite', { timeout: 15000 })
+
+      await expect(page.locator('main header').locator('text=/v\\d+\\.\\d+/')).toBeVisible({
+        timeout: 15000,
+      })
+
+      const runCommandContainer = page.locator('.group\\/runcmd').first()
+      await expect(runCommandContainer).toBeVisible({ timeout: 20000 })
+
+      const copyButton = runCommandContainer.locator('button')
+      await copyButton.click()
+
+      // Button text should change to "copied!"
+      await expect(copyButton).toContainText(/copied/i)
+
+      // Verify clipboard content contains the run command
+      const clipboardContent = await page.evaluate(() => navigator.clipboard.readText())
+      expect(clipboardContent).toMatch(/vite|npx vite/i)
+
+      await expect(copyButton).toContainText(/copy/i, { timeout: 5000 })
+      await expect(copyButton).not.toContainText(/copied/i)
+    })
+  })
 })
