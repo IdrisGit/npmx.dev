@@ -137,7 +137,11 @@ function getWarningTooltip(skill: SkillListItem): string | undefined {
             :aria-label="$t('package.get_started.copy_command')"
             @click.stop="copyCommand"
           >
-            <span aria-live="polite">{{ copied ? $t('common.copied') : $t('common.copy') }}</span>
+            <span
+              :class="copied ? 'i-carbon:checkmark' : 'i-carbon:copy'"
+              class="size-4 inline-block"
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>
